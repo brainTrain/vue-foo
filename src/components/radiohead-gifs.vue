@@ -1,8 +1,8 @@
 <template>
   <div>
     <h1>Ohhh</h1>
-    <div v-for="image in images">
-      <img :src="image" />
+    <div class="images-container">
+      <img v-for="image in images" :src="image" />
     </div>
   </div>
 </template>
@@ -55,4 +55,9 @@ export default {
 </script>
 
 <style scoped>
+  .images-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 </style>
