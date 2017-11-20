@@ -26,7 +26,9 @@ export default {
     window.removeEventListener('fb-sdk-ready', this.handleFBLoaded);
   },
   created() {
-    this.login();
+    if (Vue.FB) {
+      this.login();
+    }
   },
   methods: {
     handleFBLoaded() {
