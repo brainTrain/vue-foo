@@ -3,6 +3,7 @@
     <router-link :to="{ name: 'Homepage' }">
       <img src="./assets/logo.svg">
     </router-link>
+
     <router-view/>
   </div>
 </template>
