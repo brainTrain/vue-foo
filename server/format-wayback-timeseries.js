@@ -20,14 +20,14 @@ const {
   RESULT_MEMENTO,
 } = require('./constants');
 
-function formatWaybackTimestamps (timestampsResult) {
-  const formattedJson = _formatJSON(timestampsResult);
+function formatWaybackTimeseries (timeseriesResult) {
+  const formattedJson = _formatJSON(timeseriesResult);
 
   return JSON.stringify(formattedJson);
 }
 
-function _formatJSON (timestampsResult) {
-  const resultsList = timestampsResult.split(',\n');
+function _formatJSON (timeseriesResult) {
+  const resultsList = timeseriesResult.split(',\n');
   let data = { results: [] };
   resultsList.forEach(function (result) {
     // don't attempt to parse if there's an empty string
@@ -150,4 +150,4 @@ function _transformBaseUrl (url, baseUrl) {
   return `${baseUrl}${noBaseUrlList.join('/')}`;
 }
 
-module.exports = formatWaybackTimestamps;
+module.exports = formatWaybackTimeseries;

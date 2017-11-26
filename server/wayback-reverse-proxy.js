@@ -3,7 +3,7 @@ const {
   WAYBACK_BASE_URL,
   WAYBACK_WEB_BASE_URL,
 } = require('./constants');
-const formatWaybackTimestamps = require('./format-wayback-timestamps');
+const formatWaybackTimeseries = require('./format-wayback-timeseries');
 const express = require('express');
 const cors = require('cors');
 const through2 = require('through2');
@@ -23,18 +23,18 @@ app.get('/api/wayback/available', requestProxy({
 }));
 
 
-let waybackTimemapString = '';
-const timemapTransform = {
-  name: 'timemapTransform',
+let waybackTimeseriesString = '';
+const waybackTimeseriesTransform = {
+  name: 'waybackTimeseriesTransform',
   transform: function () {
     return through2.obj(
       function (chunk, encoding, callback) {
         const chunkString = chunk.toString();
-        waybackTimemapString += chunkString;
+        waybackTimeseriesString += chunkString;
         callback();
       },
       function (callback) {
-        const formattedResults = formatWaybackTimestamps(waybackTimemapString);
+        const formattedResults = formatWaybackTimeseries(waybackTimeseriesString);
         this.push(formattedResults);
         stringy = null;
         callback();
@@ -45,7 +45,7 @@ const timemapTransform = {
 
 app.get('/api/wayback/web/timemap/link/:siteUrl', requestProxy({
   url: `${WAYBACK_WEB_BASE_URL}/web/timemap/link/:siteUrl`,
-  transforms: [timemapTransform],
+  transforms: [waybackTimeseriesTransform],
 }));
 
 http.listen(PORT, () => {
