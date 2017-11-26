@@ -1,4 +1,8 @@
 // set up basic express http server
+const {
+  WAYBACK_BASE_URL,
+  WAYBACK_WEB_BASE_URL,
+} = require('./constants');
 const formatWaybackTimestamps = require('./format-wayback-timestamps');
 const express = require('express');
 const cors = require('cors');
@@ -8,8 +12,6 @@ const app = express();
 const http = require('http').Server(app);
 
 const PORT = '8000';
-const WAYBACK_WEB_BASE_URL = 'http://web.archive.org/';
-const WAYBACK_BASE_URL = 'http://archive.org/wayback/';
 
 const CORS_OPTIONS = {
   origin: 'http://localhost:8080'

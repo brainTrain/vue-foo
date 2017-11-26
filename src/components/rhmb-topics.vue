@@ -33,6 +33,7 @@ export default {
         .catch(this.handleGetTimelineError);
     },
     handleGetTimeline(timelineResults) {
+      console.log('timelineResults', timelineResults);
       this.timelineResults = timelineResults.data;
     },
     handleGetTimelineError(error) {
