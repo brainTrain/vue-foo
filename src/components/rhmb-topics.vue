@@ -1,6 +1,9 @@
 <template>
   <div>
     <h1>Get me some datez</h1>
+    <h3><b>Site:</b> {{ timelineUrl }}</h3>
+    <h3><b>First Result:</b> {{ timelineFrom }}</h3>
+    <h3><b>Wayback Query:</b> {{ timelineQuery }}</h3>
     <div class="links-container">
       <a
         target="_blank"
@@ -21,6 +24,9 @@ export default {
   data() {
     return {
       timelineResults: [],
+      timelineFrom: '',
+      timelineQuery: '',
+      timelineUrl: '',
     };
   },
   created() {
@@ -39,8 +45,12 @@ export default {
         .catch(this.handleGetTimelineError);
     },
     handleGetTimeline(timelineResults) {
-      const { results } = timelineResults.data;
+      const { results, from, query, url } = timelineResults.data;
+
       this.timelineResults = results;
+      this.timelineFrom = from;
+      this.timelineQuery = query;
+      this.timelineUrl = url;
     },
     handleGetTimelineError(error) {
       // eslint-disable-next-line
