@@ -24,10 +24,13 @@ function parseRHBM (htmlString, filepath) {
   const { userTopicMap } = data;
 
   $topics.each(function (_index, _element) {
+    // cleanup nested lists to make selectors for username and topic simpler
+    $('li ul', this).remove();
+    // lolz wow, a/b selectors
     const $topic = $('a', $(this));
-    const $username = $('font b', $(this));
+    const $username = $('b', $(this));
     const topic = $topic.html();
-    const username = encodeURIComponent($username.first().text());
+    const username = $username.text();
 
     if (userTopicMap[username]) {
       userTopicMap[username].push(topic);
@@ -35,7 +38,7 @@ function parseRHBM (htmlString, filepath) {
       userTopicMap[username] = [topic];
     }
   });
-  console.log('data', Object.keys(data.userTopicMap))
+
   return data;
 }
 
