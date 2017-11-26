@@ -1,4 +1,4 @@
-const WAYBACK_WEB_BASE_URL = 'http://web.archive.org/';
+const WAYBACK_WEB_BASE_URL = 'https://web.archive.org/';
 const WAYBACK_BASE_URL = 'http://archive.org/wayback/';
 const METADATA_ORIGINAL = 'original';
 const METADATA_TIMEGATE = 'timegate';

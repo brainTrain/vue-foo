@@ -21,10 +21,9 @@ const {
 } = require('./constants');
 
 function formatWaybackTimestamps (timestampsResult) {
-  const resultsList = timestampsResult.split(',\n');
-
   const formattedJson = _formatJSON(timestampsResult);
-  return JSON.stringify(resultsList);
+
+  return JSON.stringify(formattedJson);
 }
 
 function _formatJSON (timestampsResult) {
@@ -41,15 +40,13 @@ function _formatJSON (timestampsResult) {
 
       if (isMetadata) {
         const metadataJson = _formatMetadata(resultList, relListString);
-        console.log('metadataJson', metadataJson)
-        // const metadataJson = { foo: 'bar' }
         data = {
           ...data,
           ...metadataJson
         }  
       } else if (isResult) {
-        // const resultJson = _formatResult(result);
-        const resultJson = {};
+        const resultJson = _formatResult(resultList);
+        // const resultJson = {};
         data.results.push(resultJson);
       }
     }
@@ -59,10 +56,8 @@ function _formatJSON (timestampsResult) {
 }
 
 function _handleRelString (relString) {
-  const valueString = relString.split('=')[1];
-  // strip outer characters, which are always expected to be double quotes
-  const strippedValueString = valueString.slice(1, -1);
-  return strippedValueString;
+  const relListString = relString.split('"');
+  return relListString[1]
 }
 
 function _formatRelList (relString) {
@@ -88,7 +83,6 @@ function _formatMetadata (metadataList, relListString) {
       const url = _sanitizeUrl(metadataList[0]);
       const query = _transformBaseUrl(url, WAYBACK_WEB_BASE_URL);
       const from = _handleFromMetadata(metadataList[3]);
-      console.log(metadataList)
 
       return { query, from };
     },
@@ -105,6 +99,14 @@ function _handleFromMetadata (fromMetadata) {
   return fromMetadataList[1];
 }
 
+// example: datetime="Mon, 03 Oct 2016 08:17:53 GMT"
+// splitting on " here since that's the fastest way to get around the trailing >
+function _handleDatetimeResult (datetimeResult) {
+  const datetimeResultList = datetimeResult.split('"');
+
+  return datetimeResultList[1];
+}
+
 // boolean to determine whether this is metadata or a result
 function _handleIsMetadata (relString) {
   const isMetadataRelTestArray = [METADATA_ORIGINAL, METADATA_TIMEGATE, METADATA_SELF];
@@ -117,11 +119,14 @@ function _handleIsMetadata (relString) {
 * current attributes used to determine a link result: rel="memento"
 */
 function _formatResult (resultList) {
-// _transformBaseUrl()
+  const urlSanitized = _sanitizeUrl(resultList[0]);
+  const url = _transformBaseUrl(urlSanitized, WAYBACK_WEB_BASE_URL);
+  const datetime = _handleDatetimeResult(resultList[2]);
+
+  return { url, datetime };
 }
 
 function _handleIsResult (relString) {
-// _transformBaseUrl()
   const isResultRelTestArray = [RESULT_MEMENTO];
   var isResultRelTestRexeg = new RegExp(isResultRelTestArray.join('|'));
   return isResultRelTestRexeg.test(relString);
@@ -139,7 +144,7 @@ function _sanitizeUrl (url) {
 * in a way which doesn't care about whether the string is from localhost, or a prox on another box
 */
 function _transformBaseUrl (url, baseUrl) {
-  const noProtocolUrl = url.split('//')[1]
+  const noProtocolUrl = url.split('//').slice(1).join('//');
   const noBaseUrlList = noProtocolUrl.split('/').slice(1);
 
   return `${baseUrl}${noBaseUrlList.join('/')}`;

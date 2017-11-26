@@ -1,8 +1,14 @@
 <template>
   <div>
     <h1>Get me some datez</h1>
-    <div class="images-container">
-      <p class="image" v-for="timelineResult in timelineResults">{{ timelineResult }}</p>
+    <div class="links-container">
+      <a
+        target="_blank"
+        v-for="timelineResult in timelineResults"
+        :href="timelineResult.url"
+      >
+        {{ timelineResult.url }}
+      </a>
     </div>
   </div>
 </template>
@@ -33,8 +39,8 @@ export default {
         .catch(this.handleGetTimelineError);
     },
     handleGetTimeline(timelineResults) {
-      console.log('timelineResults', timelineResults);
-      this.timelineResults = timelineResults.data;
+      const { results } = timelineResults.data;
+      this.timelineResults = results;
     },
     handleGetTimelineError(error) {
       // eslint-disable-next-line
@@ -45,13 +51,9 @@ export default {
 </script>
 
 <style scoped>
-  .images-container {
+  .links-container {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     justify-content: center;
-  }
-
-  .image {
-    flex: 0;
   }
 </style>
