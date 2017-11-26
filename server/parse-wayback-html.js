@@ -4,6 +4,7 @@ const cheerio = require('cheerio');
 // it's a redirect page or not by scraping/parsing the html
 // returns 
 function getWaybackRedirect (htmlString) {
+  console.log('htmlString', htmlString.length)
   const $ = cheerio.load(htmlString);
   const redirectUrl = $('.impatient a').attr('href');
   return redirectUrl;

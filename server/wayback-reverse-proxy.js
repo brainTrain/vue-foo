@@ -40,9 +40,13 @@ const waybackTimeseriesTransform = {
       },
       function (callback) {
         const formattedResults = formatWaybackTimeseries(waybackTimeseriesString);
+        console.log(typeof(formattedResults))
+        const { results } = JSON.parse(formattedResults);
         this.push(formattedResults);
         // clear tmp value after we've pushed the formatted results
         waybackTimeseriesString = '';
+        // TODO: figure out best place to set server cache, lazy load on user load? Hmmm 🤔
+        // handleGetResults(results);
         callback();
       }
     )
@@ -57,15 +61,7 @@ app.get('/api/wayback/web/timemap/link/:siteUrl', requestProxy({
 app.get('/download-url/:url', function (req, res) {
   const { params: { url } } = req;
 
-  handleHtmlFileSave(url);
-
-  res.send(`ohhhhh: ${url}`);
-});
-
-function handleHtmlFileSave (url) {
-  // hashing url for smaller/friendlier (for software) filenames
-  const urlHash = crypto.createHash('md5').update(url).digest('hex');
-  const filename = `${urlHash}.html`;
+  const filename = formatFilename(url);
   const filepath = formatFilePath(filename);
   const fileExists = fs.existsSync(filepath);
 
@@ -74,11 +70,79 @@ function handleHtmlFileSave (url) {
     getWaybackPage(url, filepath);
   }
 
+  res.send(`ohhhhh: ${url}`);
+});
+
+function handleGetResults (results) {
+  let stepsSkipped = 0;
+  results.forEach(function (result, index) {
+    const { url } = result;
+    const filename = formatFilename(url);
+    const filepath = formatFilePath(filename);
+    const fileExists = fs.existsSync(filepath);
+    
+    // if the file exists, fetch based on timeoutStep variable
+    if (!fileExists) {
+      // fetch/save every n seconds
+      const timeoutStep = 1500;
+      // if steps are skipped, remove the total from current index to maintain even steps
+      const step = index - stepsSkipped;
+      const timeoutValue = index ? step * timeoutStep : timeoutStep;
+      const time = process.hrtime();
+
+      setTimeout(function () {
+        console.log('\n\nfetchin, savin for :',  url);
+        console.log('stepsSkipped', stepsSkipped);
+        console.log('step', step);
+        console.log('total files', step + stepsSkipped);
+        handleHtmlFileSave(url);
+        // log time delta
+        console.log('time delta:', process.hrtime(time));
+      }, timeoutValue);
+    } else {
+      console.log(`
+
+
+        SKIIIPPPP
+
+
+      `);
+      // keep track of how many steps have been skipped
+      // so we can keep our steps even, despite gaps
+      stepsSkipped ++; 
+      console.log('stepsSkipped', stepsSkipped)
+    }
+  });
+}
+
+function handleHtmlFileSave (url) {
+  const filename = formatFilename(url);
+  const filepath = formatFilePath(filename);
+  const fileExists = fs.existsSync(filepath);
+
+  // only write a file if it doesn't exist
+  if (!fileExists) {
+    getWaybackPage(url, filepath);
+  }
+}
+
+function formatFilename (url) {
+  // hashing url for smaller/friendlier (for software) filenames
+  const urlHash = crypto.createHash('md5').update(url).digest('hex');
+  return `${urlHash}.html`;
+}
+
+function formatFilePath (filename) {
+  const fileDir = `${__dirname}${HTML_FILE_CACHE_DIR}`;
+  return `${fileDir}/${filename}`;
 }
 
 function getWaybackPage (url, filepath) {
   request(url, function (error, response, body) {
-    const { statusCode } = response;
+    if (error) {
+     return console.log(error)
+    }
+
     const redirectUrl = getWaybackRedirect(body);
 
     if (redirectUrl) {
@@ -88,11 +152,6 @@ function getWaybackPage (url, filepath) {
       writeHtmlFile(filepath, body);
     }
   });
-}
-
-function formatFilePath (filename) {
-  const fileDir = `${__dirname}${HTML_FILE_CACHE_DIR}`;
-  return `${fileDir}/${filename}`;
 }
 
 function writeHtmlFile (filepath, body) {
