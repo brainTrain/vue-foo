@@ -56,7 +56,9 @@ app.get('/api/wayback/web/timemap/link/:siteUrl', requestProxy({
 
 app.get('/download-url/:url', function (req, res) {
   const { params: { url } } = req;
+
   handleHtmlFileSave(url);
+
   res.send(`ohhhhh: ${url}`);
 });
 
@@ -64,36 +66,44 @@ function handleHtmlFileSave (url) {
   // hashing url for smaller/friendlier (for software) filenames
   const urlHash = crypto.createHash('md5').update(url).digest('hex');
   const filename = `${urlHash}.html`;
-  getWaybackPage(url, filename);
+  const filepath = formatFilePath(filename);
+  const fileExists = fs.existsSync(filepath);
+
+  // only write a file if it doesn't exist
+  if (!fileExists) {
+    getWaybackPage(url, filepath);
+  }
+
 }
 
-function getWaybackPage (url, filename) {
+function getWaybackPage (url, filepath) {
   request(url, function (error, response, body) {
     const { statusCode } = response;
     const redirectUrl = getWaybackRedirect(body);
 
     if (redirectUrl) {
       console.log('redirectUrl', redirectUrl)
-      getWaybackPage(redirectUrl, filename);
+      getWaybackPage(redirectUrl, filepath);
     } else {
-      writeHtmlFile(filename, body);
+      writeHtmlFile(filepath, body);
     }
   });
 }
 
-function writeHtmlFile (filename, body) {
-  const filepath = `${__dirname}${HTML_FILE_CACHE_DIR}`;
-  console.log('filepath', filepath)
-  console.log('filename', filename)
-  fs.writeFile(`${filepath}/${filename}`, body, function(error) {
+function formatFilePath (filename) {
+  const fileDir = `${__dirname}${HTML_FILE_CACHE_DIR}`;
+  return `${fileDir}/${filename}`;
+}
+
+function writeHtmlFile (filepath, body) {
+  fs.writeFile(filepath, body, function(error) {
     if (error) {
       console.log(`tried to write to: ${filepath}`);
-      console.log(`tried to save: ${filename}`);
       console.log(error);
     }
   }); 
 }
 
 http.listen(PORT, () => {
-    console.log('listening on *:' + PORT);
+    console.log(`listening on *: ${PORT}`);
 });
