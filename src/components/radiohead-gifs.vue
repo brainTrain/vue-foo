@@ -35,16 +35,16 @@ export default {
       this.login();
     },
     login() {
-      Vue.FB.login(this.fetchPosts);
+      Vue.FB.login(this.getPosts);
     },
-    fetchPosts() {
+    getPosts() {
       Vue.FB.api(
         '/1658719094390640/feed?fields=id,type,link,created_time,message',
         'get',
-        this.handlePostsFetched,
+        this.handleGetPosts,
       );
     },
-    handlePostsFetched(posts) {
+    handleGetPosts(posts) {
       const { data } = posts;
       const images = data.map(({ link }) => link);
 
