@@ -29,7 +29,7 @@ function parseRHBM (htmlString, filepath) {
     // lolz wow, a/b selectors
     const $topic = $('a', $(this));
     const $username = $('b', $(this));
-    const topic = $topic.html();
+    const topic = $topic.text();
     const username = $username.text();
 
     if (userTopicMap[username]) {
@@ -38,6 +38,8 @@ function parseRHBM (htmlString, filepath) {
       userTopicMap[username] = [topic];
     }
   });
+
+  console.log(Object.keys(userTopicMap))
 
   return data;
 }
