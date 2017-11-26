@@ -86,7 +86,7 @@ app.get('/parse-url/:url', function (req, res) {
 
 function readHTMLFile (filepath, callback = function () {}) {
   fs.readFile(filepath, 'utf-8', function (error, data) {
-    callback(data);
+    callback(data, filepath);
   });
 }
 
@@ -182,7 +182,7 @@ function writeHtmlFile (filepath, body, callback = function () {}) {
     if (error) {
       console.log(`tried to write to: ${filepath}`);
       console.log(error);
-      callback(body);
+      callback(body, filepath);
     }
   }); 
 }

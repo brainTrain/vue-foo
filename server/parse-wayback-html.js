@@ -12,11 +12,32 @@ function parseWaybackRedirect (htmlString) {
   return redirectUrl;
 }
 
-function parseRHBM (htmlString) {
+function parseRHBM (htmlString, filepath) {
   const $ = cheerio.load(htmlString);
-  console.log(htmlString)
-}
+  const $topics = $('li');
+  const data = {
+    datetime: '',
+    filepath,
+    // map of topics keyed by username
+    userTopicMap: {},
+  };
+  const { userTopicMap } = data;
 
+  $topics.each(function (_index, _element) {
+    const $topic = $('a', $(this));
+    const $username = $('font b', $(this));
+    const topic = $topic.html();
+    const username = encodeURIComponent($username.first().text());
+
+    if (userTopicMap[username]) {
+      userTopicMap[username].push(topic);
+    } else {
+      userTopicMap[username] = [topic];
+    }
+  });
+  console.log('data', Object.keys(data.userTopicMap))
+  return data;
+}
 
 module.exports = {
   parseWaybackRedirect,
