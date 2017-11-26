@@ -36,7 +36,8 @@ const waybackTimeseriesTransform = {
       function (callback) {
         const formattedResults = formatWaybackTimeseries(waybackTimeseriesString);
         this.push(formattedResults);
-        stringy = null;
+        // clear tmp value after we've pushed the formatted results
+        waybackTimeseriesString = '';
         callback();
       }
     )
