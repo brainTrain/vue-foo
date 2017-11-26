@@ -9,7 +9,10 @@
     </h3>
     <h3><b>First Result:</b> {{ timelineFrom }}</h3>
     <h3><b>Last Result:</b> {{ timelineUntil }}</h3>
-    <h3><b>Wayback Query:</b> {{ timelineQuery }}</h3>
+    <h3>
+      <b>Wayback Query:</b>
+      <a target="_blank" :href="timelineQuery">{{ timelineQuery }}</a>
+    </h3>
     <h3><b>Number of Results:</b> {{ timelineResults.length }}</h3>
     <div class="links-container">
       <a
