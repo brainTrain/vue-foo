@@ -39,8 +39,6 @@ function parseRHBM (htmlString, filepath) {
     }
   });
 
-  console.log(Object.keys(userTopicMap))
-
   return data;
 }
 
