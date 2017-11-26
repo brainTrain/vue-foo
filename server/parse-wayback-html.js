@@ -1,18 +1,24 @@
 const cheerio = require('cheerio');
 
-// function to parse response body and determine whether
-// it's a redirect page or not by scraping/parsing the html
-// returns 
-function getWaybackRedirect (htmlString) {
-  console.log('htmlString', htmlString.length)
+/**
+* function to parse response body and determine whether
+* it's a redirect page or not by scraping/parsing the html
+* returns 
+*/
+function parseWaybackRedirect (htmlString) {
   const $ = cheerio.load(htmlString);
   const redirectUrl = $('.impatient a').attr('href');
+
   return redirectUrl;
-  console.log('redirectElements', redirectElements)
-  // console.log('htmlString', htmlString)
+}
+
+function parseRHBM (htmlString) {
+  const $ = cheerio.load(htmlString);
+  console.log(htmlString)
 }
 
 
 module.exports = {
-  getWaybackRedirect,
+  parseWaybackRedirect,
+  parseRHBM,
 };

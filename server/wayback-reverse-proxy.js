@@ -9,7 +9,7 @@ const fs = require('fs');
 const request = require('request');
 const crypto = require('crypto');
 const formatWaybackTimeseries = require('./format-wayback-timeseries');
-const { getWaybackRedirect } = require('./parse-wayback-html');
+const { parseWaybackRedirect, parseRHBM } = require('./parse-wayback-html');
 const express = require('express');
 const cors = require('cors');
 const through2 = require('through2');
@@ -60,18 +60,35 @@ app.get('/api/wayback/web/timemap/link/:siteUrl', requestProxy({
 
 app.get('/download-url/:url', function (req, res) {
   const { params: { url } } = req;
-
-  const filename = formatFilename(url);
-  const filepath = formatFilePath(filename);
-  const fileExists = fs.existsSync(filepath);
+  const { filepath, isFileSaved } = handleFilePath(url);
 
   // only write a file if it doesn't exist
-  if (!fileExists) {
+  if (!isFileSaved) {
     getWaybackPage(url, filepath);
   }
 
   res.send(`ohhhhh: ${url}`);
 });
+
+app.get('/parse-url/:url', function (req, res) {
+  const { params: { url } } = req;
+  const { filepath, isFileSaved } = handleFilePath(url);
+
+  // only write a file if it doesn't exist
+  if (!isFileSaved) {
+    getWaybackPage(url, filepath, parseRHBM);
+  } else {
+    readHTMLFile(filepath, parseRHBM);
+  }
+
+  res.send(`ohhhhh: ${url}`);
+});
+
+function readHTMLFile (filepath, callback = function () {}) {
+  fs.readFile(filepath, 'utf-8', function (error, data) {
+    callback(data);
+  });
+}
 
 function handleGetResults (results) {
   let stepsSkipped = 0;
@@ -116,14 +133,20 @@ function handleGetResults (results) {
 }
 
 function handleHtmlFileSave (url) {
-  const filename = formatFilename(url);
-  const filepath = formatFilePath(filename);
-  const fileExists = fs.existsSync(filepath);
+  const { filepath, isFileSaved } = handleFilePath(url);
 
   // only write a file if it doesn't exist
-  if (!fileExists) {
+  if (!isFileSaved) {
     getWaybackPage(url, filepath);
   }
+}
+
+function handleFilePath (url) {
+  const filename = formatFilename(url);
+  const filepath = formatFilePath(filename);
+  const isFileSaved = fs.existsSync(filepath);
+
+  return { filepath, isFileSaved, }
 }
 
 function formatFilename (url) {
@@ -137,28 +160,29 @@ function formatFilePath (filename) {
   return `${fileDir}/${filename}`;
 }
 
-function getWaybackPage (url, filepath) {
+function getWaybackPage (url, filepath, onFileWritten = function () {}) {
   request(url, function (error, response, body) {
     if (error) {
      return console.log(error)
     }
 
-    const redirectUrl = getWaybackRedirect(body);
+    const redirectUrl = parseWaybackRedirect(body);
 
     if (redirectUrl) {
       console.log('redirectUrl', redirectUrl)
       getWaybackPage(redirectUrl, filepath);
     } else {
-      writeHtmlFile(filepath, body);
+      writeHtmlFile(filepath, body, onFileWritten);
     }
   });
 }
 
-function writeHtmlFile (filepath, body) {
+function writeHtmlFile (filepath, body, callback = function () {}) {
   fs.writeFile(filepath, body, function(error) {
     if (error) {
       console.log(`tried to write to: ${filepath}`);
       console.log(error);
+      callback(body);
     }
   }); 
 }
