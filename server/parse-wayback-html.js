@@ -15,8 +15,12 @@ function parseWaybackRedirect (htmlString) {
 function parseRHBM (htmlString, filepath) {
   const $ = cheerio.load(htmlString);
   const $topics = $('li');
+  const datetime = parseWaybackDateTime(htmlString);
+  const filename = _parseFileName(filepath);
+
   const data = {
-    datetime: '',
+    datetime,
+    filename,
     filepath,
     // map of topics keyed by username
     userTopicMap: {},
@@ -38,11 +42,28 @@ function parseRHBM (htmlString, filepath) {
       userTopicMap[username] = [topic];
     }
   });
-
+  console.log(data)
   return data;
 }
 
+
+// scrape datetime from the wayback htmle
+function parseWaybackDateTime (htmlString) {
+  const $ = cheerio.load(htmlString);
+  const $displayYearEl = $('#displayYearEl');
+  const displayYearElTitle = $displayYearEl.attr('title');
+
+  return displayYearElTitle.split(': ')[1];
+}
+
+function _parseFileName (filepath) {
+  const filepathList = filepath.split('/');
+
+  return filepathList.slice(-1).pop();
+}
+
 module.exports = {
+  parseWaybackDateTime,
   parseWaybackRedirect,
   parseRHBM,
 };
