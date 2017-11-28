@@ -75,8 +75,6 @@ export default {
 
 <style scoped>
   .links-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    text-align: center;
   }
 </style>

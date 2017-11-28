@@ -47,7 +47,7 @@ const waybackTimeseriesTransform = {
         // clear tmp value after we've pushed the formatted results
         waybackTimeseriesString = '';
         // TODO: figure out best place to set server cache, lazy load on user load? Hmmm 🤔
-        // handleGetResults(results);
+        handleGetResults(results);
         callback();
       }
     )
@@ -89,6 +89,28 @@ app.get('/parse-url/:url', function (req, res) {
 
   res.send(`ohhhhh: ${url}`);
 });
+
+app.get('/topic-json', function (req, res) {
+  const jsonz = getAllTehJSONz();   
+  let jsonArray = [];
+  jsonz.forEach(function (filename, index) {
+    const filepath = `${__dirname}${JSON_FILE_CACHE_DIR}/${filename}`;
+    fs.readFile(filepath, 'utf-8', function (error, jsonString) {
+      jsonArray.push(jsonString)
+
+      if (index === jsonz.length - 1) {
+        res.send(jsonArray);
+      }
+    });
+  });
+});
+
+function getAllTehJSONz () {
+  const JSON_SOURCES = fs.readdirSync(`${__dirname}${JSON_FILE_CACHE_DIR}`)
+  console.log('JSON_SOURCES', JSON_SOURCES)
+  return JSON_SOURCES;
+}
+
 
 function writeJSONFile (htmlString, url) {
   const { filepath } = formatJSONFilePath(url);
@@ -134,6 +156,7 @@ function handleGetResults (results) {
         console.log('time delta:', process.hrtime(time));
       }, timeoutValue);
     } else {
+      /*
       console.log(`
 
 
@@ -141,10 +164,11 @@ function handleGetResults (results) {
 
 
       `);
+      */
       // keep track of how many steps have been skipped
       // so we can keep our steps even, despite gaps
       stepsSkipped ++; 
-      console.log('stepsSkipped', stepsSkipped)
+      // console.log('stepsSkipped', stepsSkipped)
     }
   });
 }

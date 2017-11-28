@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <router-link :to="{ name: 'RadioheadGifs' }">Um</router-link>
-    <router-link :to="{ name: 'RadioheadGifs' }">Like</router-link>
+    <router-link :to="{ name: 'RHMBJSON' }">Like</router-link>
     <router-link :to="{ name: 'RHMBTopics' }">Whatever</router-link>
   </div>
 </template>

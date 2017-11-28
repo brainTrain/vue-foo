@@ -1,5 +1,6 @@
 # vue-foo
 oh hai vue
+WARNING: Hax on hax on hax
 
 > A Vue.js project
 
