@@ -12,7 +12,7 @@ function parseWaybackRedirect (htmlString) {
   return redirectUrl;
 }
 
-function parseRHBM (htmlString, filepath) {
+function parseRHBMTopics (htmlString, filepath) {
   const $ = cheerio.load(htmlString);
   const $topics = $('li');
   const datetime = parseWaybackDateTime(htmlString);
@@ -42,7 +42,7 @@ function parseRHBM (htmlString, filepath) {
       userTopicMap[username] = [topic];
     }
   });
-  console.log(data)
+
   return data;
 }
 
@@ -53,7 +53,7 @@ function parseWaybackDateTime (htmlString) {
   const $displayYearEl = $('#displayYearEl');
   const displayYearElTitle = $displayYearEl.attr('title');
 
-  return displayYearElTitle.split(': ')[1];
+  return displayYearElTitle ? displayYearElTitle.split(': ')[1] : '';
 }
 
 function _parseFileName (filepath) {
@@ -65,5 +65,5 @@ function _parseFileName (filepath) {
 module.exports = {
   parseWaybackDateTime,
   parseWaybackRedirect,
-  parseRHBM,
+  parseRHBMTopics,
 };

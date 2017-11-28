@@ -5,7 +5,7 @@
   "author": "brainTrain <abductee@gmail.com>",
   "private": true,
   "scripts": {
-    "wayback-proxy-server": "nodemon ./server/wayback-reverse-proxy.js",
+    "wayback-proxy-server": "nodemon --ignore ./server/wayback-json-cache/ ./server/wayback-reverse-proxy.js",
     "client-dev-server": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
     "dev": "concurrently \"npm run wayback-proxy-server\" \"npm run client-dev-server\" ",
     "start": "npm run dev",

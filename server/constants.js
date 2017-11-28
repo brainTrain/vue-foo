@@ -5,6 +5,7 @@ const METADATA_TIMEGATE = 'timegate';
 const METADATA_SELF = 'self';
 const RESULT_MEMENTO = 'memento';
 const HTML_FILE_CACHE_DIR = '/wayback-html-cache';
+const JSON_FILE_CACHE_DIR = '/wayback-json-cache';
 
 serverConstants = {
   WAYBACK_BASE_URL,
@@ -14,6 +15,7 @@ serverConstants = {
   METADATA_SELF,
   RESULT_MEMENTO,
   HTML_FILE_CACHE_DIR,
+  JSON_FILE_CACHE_DIR,
 };
 
 module.exports = serverConstants;

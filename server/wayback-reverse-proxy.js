@@ -3,13 +3,14 @@ const {
   WAYBACK_BASE_URL,
   WAYBACK_WEB_BASE_URL,
   HTML_FILE_CACHE_DIR,
+  JSON_FILE_CACHE_DIR,
 } = require('./constants');
 
 const fs = require('fs');
 const request = require('request');
 const crypto = require('crypto');
 const formatWaybackTimeseries = require('./format-wayback-timeseries');
-const { parseWaybackRedirect, parseRHBM } = require('./parse-wayback-html');
+const { parseWaybackRedirect, parseRHBMTopics } = require('./parse-wayback-html');
 const express = require('express');
 const cors = require('cors');
 const through2 = require('through2');
@@ -60,7 +61,7 @@ app.get('/api/wayback/web/timemap/link/:siteUrl', requestProxy({
 
 app.get('/download-url/:url', function (req, res) {
   const { params: { url } } = req;
-  const { filepath, isFileSaved } = handleFilePath(url);
+  const { filepath, isFileSaved } = formatHTMLFilePath(url);
 
   // only write a file if it doesn't exist
   if (!isFileSaved) {
@@ -72,21 +73,35 @@ app.get('/download-url/:url', function (req, res) {
 
 app.get('/parse-url/:url', function (req, res) {
   const { params: { url } } = req;
-  const { filepath, isFileSaved } = handleFilePath(url);
+  const { filepath, isFileSaved } = formatHTMLFilePath(url);
 
   // only write a file if it doesn't exist
   if (!isFileSaved) {
-    getWaybackPage(url, filepath, parseRHBM);
+    getWaybackPage(url, filepath, function (htmlString) {
+      console.log('ohhhhhhhh sooooooooooo')
+      writeJSONFile(htmlString, url);
+    });
   } else {
-    readHTMLFile(filepath, parseRHBM);
+    readHTMLFile(filepath, function(htmlString) {
+      writeJSONFile(htmlString, url);
+    });
   }
 
   res.send(`ohhhhh: ${url}`);
 });
 
+function writeJSONFile (htmlString, url) {
+  const { filepath } = formatJSONFilePath(url);
+  const  RHMBTopics = parseRHBMTopics(htmlString, filepath);
+  console.log(filepath)
+  writeFile(filepath, JSON.stringify(RHMBTopics));
+}
+
 function readHTMLFile (filepath, callback = function () {}) {
-  fs.readFile(filepath, 'utf-8', function (error, data) {
-    callback(data, filepath);
+  console.log('do that thing')
+  fs.readFile(filepath, 'utf-8', function (error, htmlString) {
+    console.log('oh and a read?????')
+    callback(htmlString);
   });
 }
 
@@ -94,9 +109,11 @@ function handleGetResults (results) {
   let stepsSkipped = 0;
   results.forEach(function (result, index) {
     const { url } = result;
-    const filename = formatFilename(url);
-    const filepath = formatFilePath(filename);
+    const filename = formatFilename(url, 'html');
+    const filepath = formatFilePath(filename, HTML_FILE_CACHE_DIR);
     const fileExists = fs.existsSync(filepath);
+    console.log(filepath)
+    console.log('fileExists', fileExists)
     
     // if the file exists, fetch based on timeoutStep variable
     if (!fileExists) {
@@ -133,7 +150,7 @@ function handleGetResults (results) {
 }
 
 function handleHtmlFileSave (url) {
-  const { filepath, isFileSaved } = handleFilePath(url);
+  const { filepath, isFileSaved } = formatHTMLFilePath(url);
 
   // only write a file if it doesn't exist
   if (!isFileSaved) {
@@ -141,52 +158,64 @@ function handleHtmlFileSave (url) {
   }
 }
 
-function handleFilePath (url) {
-  const filename = formatFilename(url);
-  const filepath = formatFilePath(filename);
+function formatJSONFilePath (url) {
+  const filename = formatFilename(url, 'json');
+  const filepath = formatFilePath(filename, JSON_FILE_CACHE_DIR);
   const isFileSaved = fs.existsSync(filepath);
 
   return { filepath, isFileSaved, }
 }
 
-function formatFilename (url) {
-  // hashing url for smaller/friendlier (for software) filenames
-  const urlHash = crypto.createHash('md5').update(url).digest('hex');
-  return `${urlHash}.html`;
+function formatHTMLFilePath (url) {
+  const filename = formatFilename(url, 'html');
+  const filepath = formatFilePath(filename, HTML_FILE_CACHE_DIR);
+  const isFileSaved = fs.existsSync(filepath);
+
+  return { filepath, isFileSaved, }
 }
 
-function formatFilePath (filename) {
-  const fileDir = `${__dirname}${HTML_FILE_CACHE_DIR}`;
+function formatFilename (url, extension = 'txt') {
+  // hashing url for smaller/friendlier (for software) filenames
+  const urlHash = crypto.createHash('md5').update(url).digest('hex');
+
+  return `${urlHash}.${extension}`;
+}
+
+function formatFilePath (filename, directory) {
+  const fileDir = `${__dirname}${directory}`;
+
   return `${fileDir}/${filename}`;
 }
 
-function getWaybackPage (url, filepath, onFileWritten = function () {}) {
+function getWaybackPage (url, filepath, callback = function () {}) {
   request(url, function (error, response, body) {
     if (error) {
      return console.log(error)
     }
-
+    console.log(filepath)
     const redirectUrl = parseWaybackRedirect(body);
 
     if (redirectUrl) {
       console.log('redirectUrl', redirectUrl)
-      getWaybackPage(redirectUrl, filepath);
+      getWaybackPage(redirectUrl, filepath, callback);
     } else {
-      writeHtmlFile(filepath, body, onFileWritten);
+      writeFile(filepath, body, callback);
     }
   });
 }
 
-function writeHtmlFile (filepath, body, callback = function () {}) {
+function writeFile (filepath, body, callback = function () {}) {
   fs.writeFile(filepath, body, function(error) {
+    console.log('write FILEEEEEEEEEEEEEEEEEEEEEEEEEEE')
+    // callback(body);
+
     if (error) {
       console.log(`tried to write to: ${filepath}`);
       console.log(error);
-      callback(body, filepath);
     }
   }); 
 }
 
-http.listen(PORT, () => {
+http.listen(PORT, function () {
     console.log(`listening on *: ${PORT}`);
 });
