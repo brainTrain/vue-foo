@@ -11,14 +11,6 @@
     background: transparent;
     cursor: pointer;
   }
-
-  .topics-list {
-    display: none;
-  }
-
-  .display-none {
-    display: none;
-  }
   
   textarea {
     height: 500px;
@@ -34,7 +26,7 @@
         <button v-on:click="toggleIsVisible(name)">
           <h3>{{ name }} ({{ topics.length }})</h3>
         </button>
-        <div v-bind:class="{ 'display-none': !isVisible[name] }">
+        <div v-if="isVisible[name]">
           <p v-for="topic in topics">
             {{ topic }}
           </p>
