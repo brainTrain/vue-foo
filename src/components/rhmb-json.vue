@@ -22,9 +22,10 @@
   <div>
     <h1>Get me some JSONz</h1>
     <div class="json-container">
+      <h3>Total Usernames: {{ Object.keys(JSONResults).length }}</h3>
       <div v-for="(topics, name) in JSONResults">
         <button v-on:click="toggleIsVisible(name)">
-          <h3>{{ name }} ({{ topics.length }})</h3>
+          <h2>{{ name }} ({{ topics.length }})</h2>
         </button>
         <div v-if="isVisible[name]">
           <p v-for="topic in topics">
