@@ -28,11 +28,12 @@ function parseRHBMTopics (htmlString, filepath) {
   const { userTopicMap } = data;
 
   $topics.each(function (_index, _element) {
+    const $this = $(this);
     // cleanup nested lists to make selectors for username and topic simpler
-    $('li ul', this).remove();
+    $('li ul', $this).remove();
     // lolz wow, a/b selectors
-    const $topic = $('a', $(this));
-    const $username = $('b', $(this));
+    const $topic = $('a', $this);
+    const $username = $('b', $this);
     const topic = $topic.text();
     const username = $username.text();
 

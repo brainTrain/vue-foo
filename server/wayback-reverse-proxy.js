@@ -41,7 +41,6 @@ const waybackTimeseriesTransform = {
       },
       function (callback) {
         const formattedResults = formatWaybackTimeseries(waybackTimeseriesString);
-        console.log(typeof(formattedResults))
         const { results } = JSON.parse(formattedResults);
         this.push(formattedResults);
         // clear tmp value after we've pushed the formatted results
@@ -78,7 +77,6 @@ app.get('/parse-url/:url', function (req, res) {
   // only write a file if it doesn't exist
   if (!isFileSaved) {
     getWaybackPage(url, filepath, function (htmlString) {
-      console.log('ohhhhhhhh sooooooooooo')
       writeJSONFile(htmlString, url);
     });
   } else {
@@ -93,21 +91,40 @@ app.get('/parse-url/:url', function (req, res) {
 app.get('/topic-json', function (req, res) {
   const jsonz = getAllTehJSONz();   
   let jsonArray = [];
+  let topicsByName = {};
   jsonz.forEach(function (filename, index) {
     const filepath = `${__dirname}${JSON_FILE_CACHE_DIR}/${filename}`;
     fs.readFile(filepath, 'utf-8', function (error, jsonString) {
+      // const jsonObject = JSON.parse(jsonString);
+      try {
+        const jsonObject = JSON.parse(jsonString);
+        const { userTopicMap } = jsonObject
+        Object.keys(userTopicMap).forEach(function (name) {
+          topicsByName[name]
+          ? topicsByName[name] = [...topicsByName[name], ...userTopicMap[name]]
+          : topicsByName[name] = userTopicMap[name]
+        });
+      } catch (error) {
+        console.log('error', error)
+      }
+
       jsonArray.push(jsonString)
 
       if (index === jsonz.length - 1) {
-        res.send(jsonArray);
+                
+        res.send({
+          topicsByName,
+        });
       }
     });
   });
 });
 
+app.get('/topic-json', function (req, res) {
+});
+
 function getAllTehJSONz () {
   const JSON_SOURCES = fs.readdirSync(`${__dirname}${JSON_FILE_CACHE_DIR}`)
-  console.log('JSON_SOURCES', JSON_SOURCES)
   return JSON_SOURCES;
 }
 
@@ -115,14 +132,11 @@ function getAllTehJSONz () {
 function writeJSONFile (htmlString, url) {
   const { filepath } = formatJSONFilePath(url);
   const  RHMBTopics = parseRHBMTopics(htmlString, filepath);
-  console.log(filepath)
   writeFile(filepath, JSON.stringify(RHMBTopics));
 }
 
 function readHTMLFile (filepath, callback = function () {}) {
-  console.log('do that thing')
   fs.readFile(filepath, 'utf-8', function (error, htmlString) {
-    console.log('oh and a read?????')
     callback(htmlString);
   });
 }
@@ -134,8 +148,6 @@ function handleGetResults (results) {
     const filename = formatFilename(url, 'html');
     const filepath = formatFilePath(filename, HTML_FILE_CACHE_DIR);
     const fileExists = fs.existsSync(filepath);
-    console.log(filepath)
-    console.log('fileExists', fileExists)
     
     // if the file exists, fetch based on timeoutStep variable
     if (!fileExists) {
@@ -147,28 +159,14 @@ function handleGetResults (results) {
       const time = process.hrtime();
 
       setTimeout(function () {
-        console.log('\n\nfetchin, savin for :',  url);
-        console.log('stepsSkipped', stepsSkipped);
-        console.log('step', step);
-        console.log('total files', step + stepsSkipped);
         handleHtmlFileSave(url);
         // log time delta
         console.log('time delta:', process.hrtime(time));
       }, timeoutValue);
     } else {
-      /*
-      console.log(`
-
-
-        SKIIIPPPP
-
-
-      `);
-      */
       // keep track of how many steps have been skipped
       // so we can keep our steps even, despite gaps
-      stepsSkipped ++; 
-      // console.log('stepsSkipped', stepsSkipped)
+      stepsSkipped ++;
     }
   });
 }
@@ -216,11 +214,10 @@ function getWaybackPage (url, filepath, callback = function () {}) {
     if (error) {
      return console.log(error)
     }
-    console.log(filepath)
+
     const redirectUrl = parseWaybackRedirect(body);
 
     if (redirectUrl) {
-      console.log('redirectUrl', redirectUrl)
       getWaybackPage(redirectUrl, filepath, callback);
     } else {
       writeFile(filepath, body, callback);
@@ -230,7 +227,6 @@ function getWaybackPage (url, filepath, callback = function () {}) {
 
 function writeFile (filepath, body, callback = function () {}) {
   fs.writeFile(filepath, body, function(error) {
-    console.log('write FILEEEEEEEEEEEEEEEEEEEEEEEEEEE')
     // callback(body);
 
     if (error) {

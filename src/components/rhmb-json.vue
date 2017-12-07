@@ -1,10 +1,45 @@
+<style scoped>
+  .json-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+  }
+
+  button {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .topics-list {
+    display: none;
+  }
+
+  .display-none {
+    display: none;
+  }
+  
+  textarea {
+    height: 500px;
+    margin-bottom: 20px;
+  }
+</style>
+
 <template>
   <div>
     <h1>Get me some JSONz</h1>
     <div class="json-container">
-      <textarea v-for="JSONResult in JSONResults" >
-        {{ JSONResult }}
-      </textarea>
+      <div v-for="(topics, name) in JSONResults">
+        <button v-on:click="toggleIsVisible(name)">
+          <h3>{{ name }} ({{ topics.length }})</h3>
+        </button>
+        <div v-bind:class="{ 'display-none': !isVisible[name] }">
+          <p v-for="topic in topics">
+            {{ topic }}
+          </p>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -16,7 +51,8 @@ export default {
   name: 'radiohead-gifs',
   data() {
     return {
-      JSONResults: [],
+      isVisible: {},
+      JSONResults: {},
     };
   },
   created() {
@@ -33,29 +69,20 @@ export default {
         .catch(this.handleGetJSONError);
     },
     handleGetJSON(JSONResults) {
-      console.log('JSONResults', JSONResults)
-      const { data } = JSONResults;
+      const { data: { topicsByName } } = JSONResults;
 
-      this.JSONResults = data;
+      this.JSONResults = topicsByName;
     },
     handleGetJSONError(error) {
       // eslint-disable-next-line
-      console.error('oh noes, error getting json results :(', error);
+    },
+    toggleIsVisible(index) {
+      // create shallow copy to replace existing data so vue can hook in to the changes
+      const newIsVisible = { ...this.isVisible }
+      const item = newIsVisible[index];
+      item ? delete newIsVisible[index] : newIsVisible[index] = true;
+      this.isVisible = newIsVisible;
     },
   },
 };
 </script>
-
-<style scoped>
-  .json-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    width: 100%;
-  }
-  
-  textarea {
-    height: 200px;
-    margin-bottom: 20px;
-  }
-</style>
